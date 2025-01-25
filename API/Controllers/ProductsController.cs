@@ -1,6 +1,8 @@
 using System;
+using System.Net.Cache;
 using Core.Entities;
 using Core.Interfaces;
+using Core.Specifications;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +16,9 @@ public class ProductsController(IGenericRepository<Product> productRepository) :
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts(string? brand, string? type, string? sort)
     {
-        return Ok(await productRepository.GetListAllAsync());
+        var spec = new ProductSpecification(brand, type, sort);
+        var products = await productRepository.ListAsync(spec);
+        return Ok(products);
     }
 
     [HttpGet("{id:int}")] // api/products/2
@@ -71,15 +75,15 @@ public class ProductsController(IGenericRepository<Product> productRepository) :
     [HttpGet("brands")]
     public async Task<ActionResult<IReadOnlyList<string>>> GetBrands()
     {
-        // TODO: impliment later
-        return Ok();
+        var spec = new BrandListSpecification();
+        return Ok(await productRepository.ListAsync(spec));
     }
 
     [HttpGet("types")]
     public async Task<ActionResult<IReadOnlyList<string>>> GetTypes()
     {
-        // TODO: impliment later
-        return Ok();
+        var spec = new TypeListSpecification();
+        return Ok(await productRepository.ListAsync(spec));
     }
 
     private bool ProductExists(int id)
